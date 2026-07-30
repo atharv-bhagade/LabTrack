@@ -74,5 +74,4 @@ flutter run
 GitHub: https://github.com/atharv-bhagade
 
 ---
-
 ⭐ If you like this project, consider giving it a star!
