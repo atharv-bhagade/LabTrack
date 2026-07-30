@@ -1,17 +1,78 @@
-# hello_flutter
+# LabTrack
 
-A new Flutter project.
+A smart Flutter application for managing computer labs with an interactive grid-based layout. LabTrack helps institutions organize lab infrastructure, monitor device status, and simplify maintenance management.
 
-## Getting Started
+## ✨ Features
 
-This project is a starting point for a Flutter application.
+- 🖥️ Interactive computer lab layout
+- 🏢 Building → Floor → Room hierarchy
+- 📍 Drag-and-drop device placement
+- 🔴 Device health status tracking
+- 📝 Defect reporting with reasons
+- 🌙 Light & Dark theme support
+- 💾 Local data persistence
+- 🎨 Clean and modern Flutter UI
 
-A few resources to get you started if this is your first Flutter project:
+## 📱 Screenshots
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+> Screenshots will be added soon.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Tech Stack
+
+- Flutter
+- Dart
+- SharedPreferences
+- Material Design 3
+
+## 📂 Project Structure
+
+```
+lib/
+├── constants/
+├── controllers/
+├── models/
+├── screens/
+├── services/
+├── theme/
+├── utils/
+└── widgets/
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK
+- Dart SDK
+- Android Studio or VS Code
+
+### Installation
+
+```bash
+git clone https://github.com/atharv-bhagade/LabTrack.git
+cd LabTrack
+flutter pub get
+flutter run
+```
+
+## 🎯 Roadmap
+
+- [x] Interactive lab layout
+- [x] Device status management
+- [x] Dark mode
+- [x] Building/Floor/Room management
+- [ ] Firebase integration
+- [ ] QR-based attendance
+- [ ] Maintenance ticket system
+- [ ] Multi-user support
+- [ ] Cloud synchronization
+
+## 👨‍💻 Author
+
+**Atharv Bhagade**
+
+GitHub: https://github.com/atharv-bhagade
+
+---
+
+⭐ If you like this project, consider giving it a star!
