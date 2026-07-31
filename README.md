@@ -16,24 +16,40 @@ A smart Flutter application for managing computer labs with an interactive grid-
 
 ## 📸 Screenshots
 
-### 🏢 Building Layout
-![Building Layout](assets/screenshots/BUILDING%20LAYOUT.png)
+<table align="center">
+<tr>
+<td align="center">
+<b>🏢 Building Layout</b><br><br>
+<img src="assets/screenshots/BUILDING%20LAYOUT.png" width="280">
+</td>
+<td align="center">
+<b>🖥️ Room Layout</b><br><br>
+<img src="assets/screenshots/ROOM%20LAYOUT.png" width="280">
+</td>
+</tr>
 
-### 🖥️ Room Layout
-![Room Layout](assets/screenshots/ROOM%20LAYOUT.png)
+<tr>
+<td align="center">
+<b>📏 Room Size</b><br><br>
+<img src="assets/screenshots/ROOM%20SIZE.png" width="280">
+</td>
+<td align="center">
+<b>🔴 Adding Reason</b><br><br>
+<img src="assets/screenshots/ADDING%20REASON.png" width="280">
+</td>
+</tr>
 
-### 📏 Room Size Configuration
-![Room Size](assets/screenshots/ROOM%20SIZE.png)
-
-### 🔴 Adding Defect Reason
-![Adding Reason](assets/screenshots/ADDING%20REASON.png)
-
-### 🟢 Changing Device Status
-![Changing Status](assets/screenshots/CHANGING%20STATUS.png)
-
-### ☀️ Light Theme
-![Light Theme](assets/screenshots/LIGHT%20THEME.png)
-
+<tr>
+<td align="center">
+<b>🟢 Changing Status</b><br><br>
+<img src="assets/screenshots/CHANGING%20STATUS.png" width="280">
+</td>
+<td align="center">
+<b>☀️ Light Theme</b><br><br>
+<img src="assets/screenshots/LIGHT%20THEME.png" width="280">
+</td>
+</tr>
+</table>
 
 ## 🛠️ Tech Stack
 
