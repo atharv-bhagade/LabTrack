@@ -13,9 +13,27 @@ A smart Flutter application for managing computer labs with an interactive grid-
 - 💾 Local data persistence
 - 🎨 Clean and modern Flutter UI
 
-## 📱 Screenshots
 
-> Screenshots will be added soon.
+## 📸 Screenshots
+
+### 🏢 Building Layout
+![Building Layout](assets/screenshots/BUILDING%20LAYOUT.png)
+
+### 🖥️ Room Layout
+![Room Layout](assets/screenshots/ROOM%20LAYOUT.png)
+
+### 📏 Room Size Configuration
+![Room Size](assets/screenshots/ROOM%20SIZE.png)
+
+### 🔴 Adding Defect Reason
+![Adding Reason](assets/screenshots/ADDING%20REASON.png)
+
+### 🟢 Changing Device Status
+![Changing Status](assets/screenshots/CHANGING%20STATUS.png)
+
+### ☀️ Light Theme
+![Light Theme](assets/screenshots/LIGHT%20THEME.png)
+
 
 ## 🛠️ Tech Stack
 
