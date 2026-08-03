@@ -10,9 +10,9 @@ abstract final class DeviceTypeInfo {
       };
 
   static String label(DeviceType type) => switch (type) {
-        DeviceType.desktop => 'Desktop PC',
-        DeviceType.laptop => 'Laptop',
-        DeviceType.printer => 'Printer',
+        DeviceType.desktop => 'PC',
+        DeviceType.laptop => 'PC',
+        DeviceType.printer => 'Random Object',
         DeviceType.ac => 'AC',
       };
 

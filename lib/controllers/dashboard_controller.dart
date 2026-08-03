@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:hello_flutter/domain/services/building_wizard_service.dart';
 import 'package:hello_flutter/models/building.dart';
 import 'package:hello_flutter/models/floor.dart';
 import 'package:hello_flutter/models/room.dart';
@@ -46,6 +47,27 @@ class DashboardController extends ChangeNotifier {
         id: _newId('building'),
         name: name,
         floors: const [],
+      ),
+    ];
+    _notifyListeners();
+    await _persist();
+  }
+
+  Future<void> addBuildingFromWizard({
+    required String name,
+    required List<FloorWizardInput> floorInputs,
+  }) async {
+    final floors = BuildingWizardService.buildFloors(
+      inputs: floorInputs,
+      newId: _newId,
+    );
+
+    _buildings = [
+      ..._buildings,
+      Building(
+        id: _newId('building'),
+        name: name,
+        floors: floors,
       ),
     ];
     _notifyListeners();

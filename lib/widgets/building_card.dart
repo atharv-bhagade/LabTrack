@@ -17,6 +17,7 @@ class BuildingCard extends StatelessWidget {
     required this.onAddRoom,
     required this.onRenameRoom,
     required this.onDeleteRoom,
+    this.readOnly = false,
   });
 
   final Building building;
@@ -29,6 +30,7 @@ class BuildingCard extends StatelessWidget {
   final void Function(Floor floor) onAddRoom;
   final void Function(Floor floor, Room room) onRenameRoom;
   final void Function(Floor floor, Room room) onDeleteRoom;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -104,22 +106,24 @@ class BuildingCard extends StatelessWidget {
                 ),
               ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: 'Rename building',
-                  icon: Icon(Icons.edit_outlined, color: palette.accent),
-                  onPressed: onRenameBuilding,
-                ),
-                IconButton(
-                  tooltip: 'Delete building',
-                  icon: Icon(Icons.delete_outline_rounded,
-                      color: palette.defective),
-                  onPressed: onDeleteBuilding,
-                ),
-              ],
-            ),
+            trailing: readOnly
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Rename building',
+                        icon: Icon(Icons.edit_outlined, color: palette.accent),
+                        onPressed: onRenameBuilding,
+                      ),
+                      IconButton(
+                        tooltip: 'Delete building',
+                        icon: Icon(Icons.delete_outline_rounded,
+                            color: palette.defective),
+                        onPressed: onDeleteBuilding,
+                      ),
+                    ],
+                  ),
             children: [
               if (building.floors.isEmpty)
                 Padding(
@@ -138,6 +142,7 @@ class BuildingCard extends StatelessWidget {
                   child: _FloorPanel(
                     key: ValueKey(floor.id),
                     floor: floor,
+                    readOnly: readOnly,
                     onRoomTap: onRoomTap,
                     onRenameFloor: () => onRenameFloor(floor),
                     onDeleteFloor: () => onDeleteFloor(floor),
@@ -147,17 +152,18 @@ class BuildingCard extends StatelessWidget {
                   ),
                 ),
               ],
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    onPressed: onAddFloor,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Floor'),
+              if (!readOnly)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: onAddFloor,
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Floor'),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -170,6 +176,7 @@ class _FloorPanel extends StatelessWidget {
   const _FloorPanel({
     super.key,
     required this.floor,
+    required this.readOnly,
     required this.onRoomTap,
     required this.onRenameFloor,
     required this.onDeleteFloor,
@@ -179,6 +186,7 @@ class _FloorPanel extends StatelessWidget {
   });
 
   final Floor floor;
+  final bool readOnly;
   final void Function(Room room) onRoomTap;
   final VoidCallback onRenameFloor;
   final VoidCallback onDeleteFloor;
@@ -230,23 +238,25 @@ class _FloorPanel extends StatelessWidget {
               style: TextStyle(color: palette.textSecondary, fontSize: 12),
             ),
           ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                tooltip: 'Rename floor',
-                icon: Icon(Icons.edit_outlined,
-                    size: 20, color: palette.accent),
-                onPressed: onRenameFloor,
-              ),
-              IconButton(
-                tooltip: 'Delete floor',
-                icon: Icon(Icons.delete_outline_rounded,
-                    size: 20, color: palette.defective),
-                onPressed: onDeleteFloor,
-              ),
-            ],
-          ),
+          trailing: readOnly
+              ? null
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Rename floor',
+                      icon: Icon(Icons.edit_outlined,
+                          size: 20, color: palette.accent),
+                      onPressed: onRenameFloor,
+                    ),
+                    IconButton(
+                      tooltip: 'Delete floor',
+                      icon: Icon(Icons.delete_outline_rounded,
+                          size: 20, color: palette.defective),
+                      onPressed: onDeleteFloor,
+                    ),
+                  ],
+                ),
           children: [
             if (floor.rooms.isEmpty)
               Padding(
@@ -265,38 +275,42 @@ class _FloorPanel extends StatelessWidget {
                     color: palette.accent),
                 title: Text(room.name),
                 subtitle: Text('${room.rows} x ${room.columns} grid'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Rename lab',
-                      icon: Icon(Icons.edit_outlined,
-                          size: 20, color: palette.accent),
-                      onPressed: () => onRenameRoom(room),
-                    ),
-                    IconButton(
-                      tooltip: 'Delete lab',
-                      icon: Icon(Icons.delete_outline_rounded,
-                          size: 20, color: palette.defective),
-                      onPressed: () => onDeleteRoom(room),
-                    ),
-                    Icon(Icons.chevron_right_rounded,
-                        color: palette.textSecondary),
-                  ],
-                ),
+                trailing: readOnly
+                    ? Icon(Icons.chevron_right_rounded,
+                        color: palette.textSecondary)
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Rename lab',
+                            icon: Icon(Icons.edit_outlined,
+                                size: 20, color: palette.accent),
+                            onPressed: () => onRenameRoom(room),
+                          ),
+                          IconButton(
+                            tooltip: 'Delete lab',
+                            icon: Icon(Icons.delete_outline_rounded,
+                                size: 20, color: palette.defective),
+                            onPressed: () => onDeleteRoom(room),
+                          ),
+                          Icon(Icons.chevron_right_rounded,
+                              color: palette.textSecondary),
+                        ],
+                      ),
                 onTap: () => onRoomTap(room),
               ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: onAddRoom,
-                  icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add Room'),
+            if (!readOnly)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: onAddRoom,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Add Room'),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

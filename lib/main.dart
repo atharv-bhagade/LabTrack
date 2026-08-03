@@ -8,7 +8,11 @@ import 'package:hello_flutter/controllers/lab_layout_controller.dart';
 
 import 'package:hello_flutter/controllers/theme_controller.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:hello_flutter/screens/splash_screen.dart';
+
+import 'package:hello_flutter/presentation/providers/app_providers.dart';
 
 import 'package:hello_flutter/services/dashboard_storage_service.dart';
 
@@ -60,13 +64,27 @@ Future<void> main() async {
 
   runApp(
 
-    LabLayoutApp(
+    ProviderScope(
 
-      layoutController: layoutController,
+      overrides: [
 
-      themeController: themeController,
+        layoutControllerProvider.overrideWithValue(layoutController),
 
-      dashboardController: dashboardController,
+        themeControllerProvider.overrideWithValue(themeController),
+
+        dashboardControllerProvider.overrideWithValue(dashboardController),
+
+      ],
+
+      child: LabLayoutApp(
+
+        layoutController: layoutController,
+
+        themeController: themeController,
+
+        dashboardController: dashboardController,
+
+      ),
 
     ),
 
@@ -141,4 +159,3 @@ class LabLayoutApp extends StatelessWidget {
   }
 
 }
-

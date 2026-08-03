@@ -1,39 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hello_flutter/constants/layout_constants.dart';
 import 'package:hello_flutter/controllers/lab_layout_controller.dart';
 import 'package:hello_flutter/controllers/theme_controller.dart';
+import 'package:hello_flutter/domain/entities/repair_ticket.dart';
 import 'package:hello_flutter/models/device.dart';
+import 'package:hello_flutter/models/device_status.dart';
 import 'package:hello_flutter/models/device_type.dart';
 import 'package:hello_flutter/models/room.dart';
+import 'package:hello_flutter/presentation/providers/app_providers.dart';
 import 'package:hello_flutter/screens/about_screen.dart';
 import 'package:hello_flutter/screens/settings_screen.dart';
 import 'package:hello_flutter/theme/app_palette.dart';
 import 'package:hello_flutter/widgets/app_confirm_dialog.dart';
 import 'package:hello_flutter/widgets/app_gradient_background.dart';
+import 'package:hello_flutter/widgets/report_problem_dialog.dart';
 import 'package:hello_flutter/widgets/device_detail_sheet.dart';
+import 'package:hello_flutter/widgets/device_status_view_dialog.dart';
 import 'package:hello_flutter/widgets/device_toolbox.dart';
 import 'package:hello_flutter/widgets/lab_layout_toolbar.dart';
 import 'package:hello_flutter/widgets/lab_room.dart';
 
-class LabLayoutScreen extends StatefulWidget {
+class LabLayoutScreen extends ConsumerStatefulWidget {
   const LabLayoutScreen({
     super.key,
     required this.room,
     required this.buildingName,
     required this.layoutController,
     required this.themeController,
+    this.readOnly = false,
+    this.floorName = '',
   });
 
   final Room room;
   final String buildingName;
+  final String floorName;
   final LabLayoutController layoutController;
   final ThemeController themeController;
+  final bool readOnly;
 
   @override
-  State<LabLayoutScreen> createState() => _LabLayoutScreenState();
+  ConsumerState<LabLayoutScreen> createState() => _LabLayoutScreenState();
 }
 
-class _LabLayoutScreenState extends State<LabLayoutScreen> {
+class _LabLayoutScreenState extends ConsumerState<LabLayoutScreen> {
   LabLayoutController get _controller => widget.layoutController;
 
   @override
@@ -47,19 +57,156 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
   }
 
   Future<void> _onDeviceDropped(DeviceType type, int row, int col) {
+    if (widget.readOnly) return Future.value();
     return _controller.addDevice(type, row, col);
   }
 
-  Future<void> _openDeviceSheet(Device device) {
-    return DeviceDetailSheet.show(
+  Future<void> _openDeviceSheet(Device device) => _openStatusView(device);
+
+  Future<void> _openStatusView(Device device) async {
+    final ticket = await ref
+        .read(repairRepositoryProvider)
+        .openTicketForDevice(device.id);
+
+    if (!mounted) return;
+
+    final canReport = widget.readOnly && device.status == DeviceStatus.working;
+
+    await DeviceStatusViewDialog.show(
       context: context,
       device: device,
-      onSave: _controller.updateDevice,
-      onRemove: () => _controller.removeDevice(device.id),
+      openTicket: ticket,
+      showReportFault: canReport,
+      onReportFault: canReport ? () => _reportFault(device) : null,
+      showEditDevice: !widget.readOnly,
+      onEditDevice: !widget.readOnly
+          ? () async {
+              final openTicket = await ref
+                  .read(repairRepositoryProvider)
+                  .openTicketForDevice(device.id);
+              if (!context.mounted) return;
+              await DeviceDetailSheet.show(
+                context: context,
+                device: device,
+                hasActiveRepairTicket: openTicket != null,
+                onSaveDevice: _saveDeviceOnly,
+                onReportProblem: _submitDeviceReport,
+                onRemove: () => _controller.removeDevice(device.id),
+              );
+            }
+          : null,
     );
   }
 
+  Future<void> _saveDeviceOnly(Device updated) async {
+    await _controller.updateDevice(updated);
+  }
+
+  Future<void> _reloadRoomLayout() {
+    return _controller.loadForRoom(
+      widget.room.id,
+      defaultRows: widget.room.rows,
+      defaultCols: widget.room.columns,
+    );
+  }
+
+  void _showActiveTicketMessage() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('This device already has an active repair ticket.'),
+      ),
+    );
+  }
+
+  Future<bool> _submitDeviceReport(Device device, String description) async {
+    if (device.status == DeviceStatus.defective ||
+        device.status == DeviceStatus.underRepair) {
+      _showActiveTicketMessage();
+      return false;
+    }
+
+    final repository = ref.read(repairRepositoryProvider);
+    final openTicket = await repository.openTicketForDevice(device.id);
+    if (openTicket != null) {
+      _showActiveTicketMessage();
+      return false;
+    }
+
+    final user = ref.read(authStateProvider).value;
+    final isTeacher = widget.readOnly;
+    final ticket = RepairTicket(
+      id: 'repair_${DateTime.now().microsecondsSinceEpoch}',
+      deviceId: device.id,
+      deviceName: device.name,
+      deviceType: device.type,
+      roomId: widget.room.id,
+      roomName: widget.room.name,
+      floorName: widget.floorName,
+      buildingName: widget.buildingName,
+      faultDescription: description,
+      status: RepairStatus.available,
+      reportedAt: DateTime.now(),
+      reportedBy: user?.userId ?? (isTeacher ? 'TEACHER' : 'ADMIN'),
+      reportedByName: user?.name ?? (isTeacher ? 'Teacher' : 'Administrator'),
+    );
+
+    final created = await repository.reportFault(ticket);
+    if (!created) {
+      _showActiveTicketMessage();
+      return false;
+    }
+
+    await _controller.updateDevice(
+      device.copyWith(
+        status: DeviceStatus.defective,
+        failureReason: description,
+        lastUpdated: DateTime.now(),
+      ),
+    );
+    await _reloadRoomLayout();
+    if (!mounted) return true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Fault reported. Technician notified.')),
+    );
+    return true;
+  }
+
+  Future<void> _reportFault(Device device) async {
+    if (device.status == DeviceStatus.defective ||
+        device.status == DeviceStatus.underRepair) {
+      _showActiveTicketMessage();
+      return;
+    }
+
+    final openTicket =
+        await ref.read(repairRepositoryProvider).openTicketForDevice(device.id);
+    if (openTicket != null) {
+      _showActiveTicketMessage();
+      return;
+    }
+
+    final reason = await ReportProblemDialog.show(context: context);
+    if (reason == null || !mounted) return;
+
+    await _submitDeviceReport(device, reason);
+  }
+
+  Future<void> _clearLayout() async {
+    final confirmed = await AppConfirmDialog.show(
+      context: context,
+      title: 'Clear Layout',
+      message:
+          'This will remove all placed devices from the lab board. The grid size will remain unchanged.',
+      confirmLabel: 'Clear Layout',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    await _controller.clearLayout();
+  }
+
   Future<void> _changeRows(int newRows) async {
+    if (widget.readOnly) return;
     if (newRows == _controller.rows) return;
 
     final outside = _controller.devicesOutsideBounds(rows: newRows);
@@ -81,6 +228,7 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
   }
 
   Future<void> _changeCols(int newCols) async {
+    if (widget.readOnly) return;
     if (newCols == _controller.cols) return;
 
     final outside = _controller.devicesOutsideBounds(cols: newCols);
@@ -106,6 +254,11 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
     final isCompact =
         MediaQuery.sizeOf(context).width < LayoutConstants.compactBreakpoint;
     final palette = context.palette;
+
+    ref.listen<int>(repairRevisionProvider, (previous, next) {
+      if (previous == next) return;
+      _reloadRoomLayout();
+    });
 
     return AnimatedBuilder(
       animation: _controller,
@@ -148,20 +301,21 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
                   );
                 },
               ),
-              IconButton(
-                tooltip: 'Settings',
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => SettingsScreen(
-                        layoutController: _controller,
-                        themeController: widget.themeController,
+              if (!widget.readOnly)
+                IconButton(
+                  tooltip: 'Settings',
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SettingsScreen(
+                          layoutController: _controller,
+                          themeController: widget.themeController,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
@@ -184,6 +338,8 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
                       devices: _controller.devices,
                       onRowsChanged: _changeRows,
                       onColsChanged: _changeCols,
+                      readOnly: widget.readOnly,
+                      onClearLayout: widget.readOnly ? null : _clearLayout,
                     ),
                     const SizedBox(height: 16),
                     Expanded(
@@ -202,6 +358,10 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
   }
 
   Widget _buildWideLayout() {
+    if (widget.readOnly) {
+      return _buildRoomArea(showBottomToolbox: false);
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -216,7 +376,7 @@ class _LabLayoutScreenState extends State<LabLayoutScreen> {
   }
 
   Widget _buildCompactLayout() {
-    return _buildRoomArea(showBottomToolbox: true);
+    return _buildRoomArea(showBottomToolbox: !widget.readOnly);
   }
 
   Widget _buildRoomArea({required bool showBottomToolbox}) {

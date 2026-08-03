@@ -23,31 +23,32 @@ class GridSizeControls extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: palette.surfaceElevated.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: palette.border),
         boxShadow: [
           BoxShadow(
             color: palette.shadow,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Lab Size',
               style: TextStyle(
                 color: palette.textSecondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             _AxisControls(
               label: 'Rows',
               value: rows,
@@ -56,7 +57,7 @@ class GridSizeControls extends StatelessWidget {
               canIncrement: rows < LayoutConstants.maxGridSize,
               canDecrement: rows > LayoutConstants.minGridSize,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _AxisControls(
               label: 'Columns',
               value: cols,
@@ -94,27 +95,32 @@ class _AxisControls extends StatelessWidget {
     final palette = context.palette;
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          width: 64,
+          width: 56,
           child: Text(
             label,
-            style: TextStyle(color: palette.textSecondary, fontSize: 12),
+            style: TextStyle(
+              color: palette.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
+        const Spacer(),
         _ControlButton(
           icon: Icons.remove_rounded,
           onPressed: canDecrement ? onDecrement : null,
         ),
-        Container(
-          width: 36,
-          alignment: Alignment.center,
+        SizedBox(
+          width: 28,
           child: Text(
             '$value',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: palette.textPrimary,
               fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
         ),
@@ -142,16 +148,16 @@ class _ControlButton extends StatelessWidget {
 
     return Material(
       color: palette.surface,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         onTap: onPressed,
         child: SizedBox(
-          width: 32,
-          height: 32,
+          width: 28,
+          height: 28,
           child: Icon(
             icon,
-            size: 18,
+            size: 16,
             color: onPressed == null
                 ? palette.textSecondary.withValues(alpha: 0.35)
                 : palette.accent,

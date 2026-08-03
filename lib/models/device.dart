@@ -1,3 +1,4 @@
+import 'package:hello_flutter/models/device_repair_history.dart';
 import 'package:hello_flutter/models/device_status.dart';
 import 'package:hello_flutter/models/device_type.dart';
 
@@ -12,6 +13,7 @@ class Device {
     required this.failureReason,
     required this.dateCreated,
     required this.lastUpdated,
+    this.repairHistory = const [],
   });
 
   final String id;
@@ -23,8 +25,9 @@ class Device {
   final String failureReason;
   final DateTime dateCreated;
   final DateTime lastUpdated;
+  final List<DeviceRepairHistoryEntry> repairHistory;
 
-  bool get isDefective => status.isDefective;
+  bool get isDefective => status == DeviceStatus.defective;
 
   Device copyWith({
     String? id,
@@ -36,6 +39,7 @@ class Device {
     String? failureReason,
     DateTime? dateCreated,
     DateTime? lastUpdated,
+    List<DeviceRepairHistoryEntry>? repairHistory,
   }) {
     return Device(
       id: id ?? this.id,
@@ -47,6 +51,7 @@ class Device {
       failureReason: failureReason ?? this.failureReason,
       dateCreated: dateCreated ?? this.dateCreated,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      repairHistory: repairHistory ?? this.repairHistory,
     );
   }
 
@@ -60,6 +65,8 @@ class Device {
         'failureReason': failureReason,
         'dateCreated': dateCreated.toIso8601String(),
         'lastUpdated': lastUpdated.toIso8601String(),
+        'repairHistory':
+            repairHistory.map((entry) => entry.toJson()).toList(),
       };
 
   factory Device.fromJson(Map<String, dynamic> json) {
@@ -73,6 +80,10 @@ class Device {
       failureReason: json['failureReason'] as String? ?? '',
       dateCreated: DateTime.parse(json['dateCreated'] as String),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
+      repairHistory: ((json['repairHistory'] as List<dynamic>?) ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(DeviceRepairHistoryEntry.fromJson)
+          .toList(),
     );
   }
 
@@ -88,7 +99,8 @@ class Device {
           status == other.status &&
           failureReason == other.failureReason &&
           dateCreated == other.dateCreated &&
-          lastUpdated == other.lastUpdated;
+          lastUpdated == other.lastUpdated &&
+          repairHistory == other.repairHistory;
 
   @override
   int get hashCode => Object.hash(
@@ -101,5 +113,6 @@ class Device {
         failureReason,
         dateCreated,
         lastUpdated,
+        repairHistory,
       );
 }

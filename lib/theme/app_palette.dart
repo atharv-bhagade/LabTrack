@@ -16,6 +16,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.tileDark,
     required this.working,
     required this.defective,
+    required this.underRepair,
     required this.shadow,
   });
 
@@ -32,6 +33,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color tileDark;
   final Color working;
   final Color defective;
+  final Color underRepair;
   final Color shadow;
 
   static const dark = AppPalette(
@@ -48,6 +50,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     tileDark: Color(0xFF1A2130),
     working: Color(0xFF34D399),
     defective: Color(0xFFF87171),
+    underRepair: Color(0xFFFBBF24),
     shadow: Color(0x66000000),
   );
 
@@ -65,6 +68,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     tileDark: Color(0xFFE3E9F2),
     working: Color(0xFF059669),
     defective: Color(0xFFDC2626),
+    underRepair: Color(0xFFD97706),
     shadow: Color(0x33000000),
   );
 
@@ -83,6 +87,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? tileDark,
     Color? working,
     Color? defective,
+    Color? underRepair,
     Color? shadow,
   }) {
     return AppPalette(
@@ -100,6 +105,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       tileDark: tileDark ?? this.tileDark,
       working: working ?? this.working,
       defective: defective ?? this.defective,
+      underRepair: underRepair ?? this.underRepair,
       shadow: shadow ?? this.shadow,
     );
   }
@@ -123,6 +129,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       tileDark: Color.lerp(tileDark, other.tileDark, t)!,
       working: Color.lerp(working, other.working, t)!,
       defective: Color.lerp(defective, other.defective, t)!,
+      underRepair: Color.lerp(underRepair, other.underRepair, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
     );
   }

@@ -4,7 +4,7 @@ import 'package:hello_flutter/constants/app_info.dart';
 import 'package:hello_flutter/controllers/dashboard_controller.dart';
 import 'package:hello_flutter/controllers/lab_layout_controller.dart';
 import 'package:hello_flutter/controllers/theme_controller.dart';
-import 'package:hello_flutter/screens/dashboard_screen.dart';
+import 'package:hello_flutter/presentation/navigation/role_home_screen.dart';
 import 'package:hello_flutter/theme/app_palette.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -89,11 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
-            child: DashboardScreen(
-              layoutController: widget.layoutController,
-              themeController: widget.themeController,
-              dashboardController: widget.dashboardController,
-            ),
+            child: const RoleHomeScreen(),
           );
         },
       ),

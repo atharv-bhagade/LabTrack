@@ -6,6 +6,8 @@ import 'package:hello_flutter/controllers/theme_controller.dart';
 import 'package:hello_flutter/models/building.dart';
 import 'package:hello_flutter/models/floor.dart';
 import 'package:hello_flutter/models/room.dart';
+import 'package:hello_flutter/presentation/admin/building_creation_wizard_screen.dart';
+import 'package:hello_flutter/presentation/admin/user_management_screen.dart';
 import 'package:hello_flutter/screens/about_screen.dart';
 import 'package:hello_flutter/screens/lab_layout_screen.dart';
 import 'package:hello_flutter/screens/settings_screen.dart';
@@ -21,11 +23,19 @@ class DashboardScreen extends StatelessWidget {
     required this.layoutController,
     required this.themeController,
     required this.dashboardController,
+    this.canManageCampus = true,
+    this.dashboardTitle,
+    this.onLogout,
+    this.labLayoutReadOnly = false,
   });
 
   final LabLayoutController layoutController;
   final ThemeController themeController;
   final DashboardController dashboardController;
+  final bool canManageCampus;
+  final String? dashboardTitle;
+  final VoidCallback? onLogout;
+  final bool labLayoutReadOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +57,34 @@ class DashboardScreen extends StatelessWidget {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            title: const Text(AppInfo.appName),
+            title: Text(dashboardTitle ?? AppInfo.appName),
             actions: [
+              if (canManageCampus) ...[
+                IconButton(
+                  tooltip: 'User Management',
+                  icon: const Icon(Icons.group_outlined),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const UserManagementScreen(),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Reports & Analytics',
+                  icon: const Icon(Icons.analytics_outlined),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Reports & analytics module coming soon.',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
               IconButton(
                 tooltip: 'About',
                 icon: const Icon(Icons.info_outline_rounded),
@@ -74,21 +110,33 @@ class DashboardScreen extends StatelessWidget {
                   );
                 },
               ),
+              if (onLogout != null)
+                IconButton(
+                  tooltip: 'Logout',
+                  icon: const Icon(Icons.logout_rounded),
+                  onPressed: onLogout,
+                ),
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
               child: Container(height: 1, color: palette.borderSubtle),
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _addBuilding(context),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Building'),
-          ),
+          floatingActionButton: canManageCampus
+              ? FloatingActionButton.extended(
+                  onPressed: () => _addBuilding(context),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Building'),
+                )
+              : null,
           body: AppGradientBackground(
             child: SafeArea(
               child: buildings.isEmpty
-                  ? _EmptyDashboard(onAddBuilding: () => _addBuilding(context))
+                  ? _EmptyDashboard(
+                      onAddBuilding: canManageCampus
+                          ? () => _addBuilding(context)
+                          : null,
+                    )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                       itemCount: buildings.length,
@@ -97,6 +145,7 @@ class DashboardScreen extends StatelessWidget {
                         return BuildingCard(
                           key: ValueKey(building.id),
                           building: building,
+                          readOnly: !canManageCampus,
                           onRoomTap: (room) => _openRoom(context, building, room),
                           onRenameBuilding: () =>
                               _renameBuilding(context, building),
@@ -124,14 +173,14 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Future<void> _addBuilding(BuildContext context) async {
-    final name = await AppInputDialog.show(
-      context: context,
-      title: 'Add Building',
-      hint: 'Building name',
-      confirmLabel: 'Add',
+    final result = await Navigator.of(context).push<BuildingWizardResult>(
+      MaterialPageRoute(builder: (_) => const BuildingCreationWizardScreen()),
     );
-    if (name == null || !context.mounted) return;
-    await dashboardController.addBuilding(name);
+    if (result == null || !context.mounted) return;
+    await dashboardController.addBuildingFromWizard(
+      name: result.buildingName,
+      floorInputs: result.floors,
+    );
   }
 
   Future<void> _renameBuilding(BuildContext context, Building building) async {
@@ -256,13 +305,23 @@ class DashboardScreen extends StatelessWidget {
   }
 
   void _openRoom(BuildContext context, Building building, Room room) {
+    var floorName = '';
+    for (final floor in building.floors) {
+      if (floor.rooms.any((item) => item.id == room.id)) {
+        floorName = floor.name;
+        break;
+      }
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LabLayoutScreen(
           room: room,
           buildingName: building.name,
+          floorName: floorName,
           layoutController: layoutController,
           themeController: themeController,
+          readOnly: labLayoutReadOnly,
         ),
       ),
     );
@@ -270,9 +329,9 @@ class DashboardScreen extends StatelessWidget {
 }
 
 class _EmptyDashboard extends StatelessWidget {
-  const _EmptyDashboard({required this.onAddBuilding});
+  const _EmptyDashboard({this.onAddBuilding});
 
-  final VoidCallback onAddBuilding;
+  final VoidCallback? onAddBuilding;
 
   @override
   Widget build(BuildContext context) {
@@ -342,12 +401,14 @@ class _EmptyDashboard extends StatelessWidget {
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: onAddBuilding,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Add Building'),
-                  ),
+                  if (onAddBuilding != null) ...[
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: onAddBuilding,
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Building'),
+                    ),
+                  ],
                 ],
               ),
             ),
