@@ -155,15 +155,27 @@ Supports multiple:
 - Campus-wide Notifications
 
 ---
+## 📸 Application Screenshots
 
-# 📸 Screenshots
+| Login Screen | Lab Layout |
+|--------------|------------|
+| <img src="login-screen.png" width="200"/> | <img src="lab-layout.png" width="200"/> |
 
-*(Add screenshots here)*
+| Report Problem | Technician Dashboard |
+|----------------|----------------------|
+| <img src="report-problem.png" width="200"/> | <img src="technician-ticket.png" width="200"/> |
 
-| Super Admin | Teacher | Technician |
-|-------------|----------|------------|
-| Coming Soon | Coming Soon | Coming Soon |
+| Invalid ID/Password | Accepted Jobs |
+|----------------------|---------------|
+| <img src="invalid-id-pass.png" width="200"/> | <img src="accepted-jobs.png" width="200"/> |
 
+| Creating IDs | Theme Change |
+|---------------|--------------|
+| <img src="creating-ids.png" width="200"/> | <img src="change-theme.png" width="200"/> |
+
+| Completed Jobs |
+|----------------|
+| <img src="completed.png" width="200"/> |
 ---
 
 # 📂 Project Structure
