@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:hello_flutter/domain/services/building_wizard_service.dart';
+import 'package:hello_flutter/domain/services/campus_hierarchy_sanitizer.dart';
 import 'package:hello_flutter/models/building.dart';
 import 'package:hello_flutter/models/floor.dart';
 import 'package:hello_flutter/models/room.dart';
 import 'package:hello_flutter/services/dashboard_storage_service.dart';
 import 'package:hello_flutter/services/layout_storage_service.dart';
+import 'package:hello_flutter/utils/unique_entity_id.dart';
 
 class DashboardController extends ChangeNotifier {
   DashboardController({
@@ -35,7 +37,14 @@ class DashboardController extends ChangeNotifier {
   }
 
   Future<void> load() async {
-    _buildings = await _dashboardStorage.loadBuildings();
+    final loaded = await _dashboardStorage.loadBuildings();
+    final result = await CampusHierarchySanitizer.sanitize(
+      buildings: loaded,
+    );
+    _buildings = result.buildings;
+    if (result.repaired) {
+      await _persist();
+    }
     isLoaded = true;
     notifyListeners();
   }
@@ -44,7 +53,7 @@ class DashboardController extends ChangeNotifier {
     _buildings = [
       ..._buildings,
       Building(
-        id: _newId('building'),
+        id: UniqueEntityId.generate('building'),
         name: name,
         floors: const [],
       ),
@@ -59,13 +68,13 @@ class DashboardController extends ChangeNotifier {
   }) async {
     final floors = BuildingWizardService.buildFloors(
       inputs: floorInputs,
-      newId: _newId,
+      newId: UniqueEntityId.generate,
     );
 
     _buildings = [
       ..._buildings,
       Building(
-        id: _newId('building'),
+        id: UniqueEntityId.generate('building'),
         name: name,
         floors: floors,
       ),
@@ -103,7 +112,7 @@ class DashboardController extends ChangeNotifier {
         floors: [
           ...building.floors,
           Floor(
-            id: _newId('floor'),
+            id: UniqueEntityId.generate('floor'),
             name: name,
             rooms: const [],
           ),
@@ -162,7 +171,7 @@ class DashboardController extends ChangeNotifier {
             rooms: [
               ...floor.rooms,
               Room(
-                id: _newId('room'),
+                id: UniqueEntityId.generate('room'),
                 name: name,
               ),
             ],
@@ -227,9 +236,6 @@ class DashboardController extends ChangeNotifier {
     }
     return null;
   }
-
-  String _newId(String prefix) =>
-      '${prefix}_${DateTime.now().microsecondsSinceEpoch}';
 
   Future<void> _persist() async {
     await _dashboardStorage.saveBuildings(_buildings);

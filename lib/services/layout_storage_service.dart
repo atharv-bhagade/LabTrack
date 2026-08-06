@@ -37,4 +37,22 @@ class LayoutStorageService {
       await prefs.remove(_layoutKey(roomId));
     }
   }
+
+  /// Copies stored layout from one room id to another, then removes the old key.
+  Future<void> migrateLayout({
+    required String fromRoomId,
+    required String toRoomId,
+  }) async {
+    if (fromRoomId.isEmpty ||
+        toRoomId.isEmpty ||
+        fromRoomId == toRoomId) {
+      return;
+    }
+
+    final layout = await loadLayout(fromRoomId);
+    if (layout == null) return;
+
+    await saveLayout(toRoomId, layout);
+    await deleteLayout(fromRoomId);
+  }
 }
